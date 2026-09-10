@@ -27,6 +27,46 @@ npm install -g @playwright/cli@latest
 playwright-cli --help
 ```
 
+### Fedora Linux
+
+Fedora is supported for browser automation and system dependency installation (`dnf`, not `apt`).
+
+1. Install the CLI (global or local):
+
+```bash
+npm install -g @playwright/cli@latest
+```
+
+2. Install Playwright browsers. Use **`--with-deps`** on Fedora to install missing RPMs via `dnf`:
+
+```bash
+playwright-cli install-browser chromium --with-deps
+playwright-cli install-browser firefox webkit   # optional engines
+```
+
+3. Dry-run dependency check (no root):
+
+```bash
+playwright-cli install-browser chromium --with-deps --dry-run
+```
+
+4. Install agent skills (optional):
+
+```bash
+playwright-cli install --skills
+```
+
+**Note:** Full Fedora support lives in Playwright core (`install-deps` / native RPM deps). Until that lands in the published `@playwright/cli` dependency, build Playwright from [priyanshuchawda/playwright](https://github.com/priyanshuchawda/playwright) and link it locally:
+
+```bash
+git clone https://github.com/priyanshuchawda/playwright.git
+cd playwright && npm ci && node utils/build/build.js --disable-install
+cd ../playwright-cli && npm ci
+npm install --no-save file:../playwright/packages/playwright-core file:../playwright/packages/playwright
+npm link ./   # or npm install -g .
+playwright-cli install-browser chromium --with-deps --dry-run
+```
+
 ### Installing skills
 
 Claude Code, GitHub Copilot and others will use the locally installed skills.

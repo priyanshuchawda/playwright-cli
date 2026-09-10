@@ -15,9 +15,20 @@
  */
 
 import fs from 'fs';
+import os from 'os';
 import path from 'path';
 import { spawn } from 'child_process';
 import { test, expect } from '@playwright/test';
+
+function isFedoraLinux(): boolean {
+  if (os.platform() !== 'linux')
+    return false;
+  try {
+    return fs.readFileSync('/etc/os-release', 'utf8').includes('ID=fedora');
+  } catch {
+    return false;
+  }
+}
 
 type CliResult = {
   output: string;
@@ -135,4 +146,15 @@ test('caches the update check in the default registry directory', async ({}) => 
 
   expect(found).toHaveLength(1);
   expect(JSON.parse(fs.readFileSync(found[0], 'utf8')).lastCheck).toEqual(expect.any(Number));
+});
+
+test('install-browser --with-deps --dry-run uses dnf on Fedora', async ({}) => {
+  test.skip(!isFedoraLinux(), 'Fedora only');
+  test.skip(!process.env.PWTEST_FEDORA_DEPS, 'Set PWTEST_FEDORA_DEPS=1 with Playwright built from priyanshuchawda/playwright');
+
+  const result = await runCli(['install-browser', 'chromium', '--with-deps', '--dry-run'], { CI: '1', NO_UPDATE_NOTIFIER: '1' });
+  const combined = result.output + result.error;
+  expect(combined).not.toContain('apt-get');
+  expect(combined).not.toMatch(/not officially supported by Playwright/);
+  expect(combined).toMatch(/Missing system dependencies|All system dependencies are installed/);
 });

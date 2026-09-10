@@ -24,3 +24,39 @@ jobs:
       run: npm ci
     - name: Run tests
       run: npm run test
+
+  fedora:
+    runs-on: ubuntu-latest
+    container:
+      image: fedora:44
+    steps:
+    - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      with:
+        path: playwright-cli
+    - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      with:
+        repository: priyanshuchawda/playwright
+        path: playwright
+        ref: feat/fedora-linux-support
+    - name: Install Node.js
+      run: dnf install -y nodejs npm
+    - name: Build Playwright (Fedora deps)
+      run: |
+        cd playwright
+        npm ci
+        node utils/build/build.js --disable-install
+    - name: Install playwright-cli against local Playwright
+      run: |
+        cd playwright-cli
+        npm ci
+        npm install --no-save file:../playwright/packages/playwright-core file:../playwright/packages/playwright
+    - name: Verify dnf install-deps dry-run
+      run: |
+        cd playwright-cli
+        node playwright-cli.js install-browser chromium --with-deps --dry-run
+    - name: Run playwright-cli tests
+      env:
+        PWTEST_FEDORA_DEPS: '1'
+      run: |
+        cd playwright-cli
+        npm run test

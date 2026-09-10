@@ -56,6 +56,8 @@ playwright-cli install-browser chromium --with-deps --dry-run
 playwright-cli install --skills
 ```
 
+See **[FEDORA.md](FEDORA.md)** for fork layout, syncing with Microsoft upstream, and push workflow.
+
 **Note:** Full Fedora support lives in Playwright core (`install-deps` / native RPM deps). Until that lands in the published `@playwright/cli` dependency, build Playwright from [priyanshuchawda/playwright](https://github.com/priyanshuchawda/playwright) and link it locally:
 
 ```bash

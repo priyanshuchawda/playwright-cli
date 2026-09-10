@@ -1,16 +1,15 @@
+# npm publish disabled on release — manual only if you need it.
 name: Publish
+
 on:
   workflow_dispatch:
-  release:
-    types: [published]
 
 jobs:
   publish-npm:
-    if: github.event_name == 'release'
     runs-on: ubuntu-latest
     permissions:
       contents: read
-      id-token: write  # Required for OIDC npm publishing
+      id-token: write
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0

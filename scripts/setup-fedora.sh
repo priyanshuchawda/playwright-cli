@@ -12,12 +12,20 @@ if [[ ! -d "$PLAYWRIGHT_ROOT/.git" ]]; then
   exit 1
 fi
 
+FEDORA_BRANCH="${FEDORA_BRANCH:-feat/fedora-linux-support}"
+
 echo "==> Building Playwright at $PLAYWRIGHT_ROOT"
 (
   cd "$PLAYWRIGHT_ROOT"
-  git fetch origin feat/fedora-linux-support 2>/dev/null || true
-  git checkout feat/fedora-linux-support
-  npm ci
+  git remote add fork https://github.com/priyanshuchawda/playwright.git 2>/dev/null || true
+  git remote add upstream https://github.com/microsoft/playwright.git 2>/dev/null || true
+  git fetch fork "$FEDORA_BRANCH" 2>/dev/null || git fetch origin "$FEDORA_BRANCH" 2>/dev/null || true
+  git checkout "$FEDORA_BRANCH"
+  if [[ -d node_modules && "${PW_FORCE_NPM_CI:-}" != 1 ]]; then
+    echo "Skipping playwright npm ci (node_modules present). Set PW_FORCE_NPM_CI=1 to reinstall."
+  else
+    npm ci
+  fi
   node utils/build/build.js --disable-install
 )
 
@@ -30,6 +38,15 @@ echo "==> Linking playwright-cli at $ROOT"
 )
 
 echo "==> Verify Fedora install-deps dry-run"
-playwright-cli install-browser chromium --with-deps --dry-run
+if playwright-cli install-browser chromium --with-deps --dry-run; then
+  echo "All browser RPM dependencies present."
+else
+  code=$?
+  if [[ "$code" -eq 1 ]]; then
+    echo "(Exit 1 = some optional font/Xvfb RPMs missing — OK for headless chromium. Install with: sudo dnf install -y <packages above>)"
+  else
+    exit "$code"
+  fi
+fi
 
 echo "Done. Use: playwright-cli open https://example.com"

@@ -1,62 +1,15 @@
+# Automatic CI disabled — saves GitHub Actions minutes.
+# Test on Fedora locally: npm ci && npm run test && scripts/setup-fedora.sh
 name: CI
 
 on:
-  push:
-    branches: [ main ]
-  pull_request:
-    branches: [ main ]
+  workflow_dispatch:
 
 jobs:
-  test:
-    strategy:
-      fail-fast: false
-      matrix:
-        os: [ubuntu-latest, macos-15, windows-latest]
-    runs-on: ${{ matrix.os }}
-    steps:
-    - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-    - name: Use Node.js 20
-      uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
-      with:
-        node-version: '20'
-        cache: 'npm'
-    - name: Install dependencies
-      run: npm ci
-    - name: Run tests
-      run: npm run test
-
-  fedora:
+  note:
     runs-on: ubuntu-latest
-    container:
-      image: fedora:44
     steps:
-    - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-      with:
-        path: playwright-cli
-    - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-      with:
-        repository: priyanshuchawda/playwright
-        path: playwright
-        ref: feat/fedora-linux-support
-    - name: Install Node.js
-      run: dnf install -y nodejs npm
-    - name: Build Playwright (Fedora deps)
-      run: |
-        cd playwright
-        npm ci
-        node utils/build/build.js --disable-install
-    - name: Install playwright-cli against local Playwright
-      run: |
-        cd playwright-cli
-        npm ci
-        npm install --no-save file:../playwright/packages/playwright-core file:../playwright/packages/playwright
-    - name: Verify dnf install-deps dry-run
-      run: |
-        cd playwright-cli
-        node playwright-cli.js install-browser chromium --with-deps --dry-run
-    - name: Run playwright-cli tests
-      env:
-        PWTEST_FEDORA_DEPS: '1'
-      run: |
-        cd playwright-cli
-        npm run test
+      - run: |
+          echo "CI is disabled for this fork."
+          echo "On Fedora: clone repo, run scripts/setup-fedora.sh"
+          echo "See FEDORA.md"

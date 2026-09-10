@@ -32,10 +32,27 @@ echo "==> Building Playwright at $PLAYWRIGHT_ROOT"
 echo "==> Linking playwright-cli at $ROOT"
 (
   cd "$ROOT"
-  npm ci
+  if [[ -d node_modules && "${PW_FORCE_NPM_CI:-}" != 1 ]]; then
+    echo "Skipping playwright-cli npm ci (node_modules present). Set PW_FORCE_NPM_CI=1 to reinstall."
+  else
+    npm ci
+  fi
   npm install --no-save "file:${PLAYWRIGHT_ROOT}/packages/playwright-core" "file:${PLAYWRIGHT_ROOT}/packages/playwright"
   npm install -g .
 )
+
+mkdir -p "$HOME/.config/playwright-cli"
+date -Iseconds >"$HOME/.config/playwright-cli/fedora-linked"
+
+echo "==> Agent skills (claude + agents)"
+(
+  cd "$ROOT"
+  node playwright-cli.js install --skills 2>/dev/null || true
+  node playwright-cli.js install --skills=agents 2>/dev/null || true
+)
+
+echo "==> zsh helpers"
+"$ROOT/scripts/install-zsh.sh"
 
 echo "==> Verify Fedora install-deps dry-run"
 if playwright-cli install-browser chromium --with-deps --dry-run; then
@@ -49,4 +66,14 @@ else
   fi
 fi
 
-echo "Done. Use: playwright-cli open https://example.com"
+echo "==> Smoke test"
+zsh -lic 'pw-check && pwo https://example.com >/dev/null && pwc' 2>/dev/null || {
+  playwright-cli open https://example.com >/dev/null
+  playwright-cli close
+}
+
+echo ""
+echo "Ready on Fedora + zsh."
+echo "  pw-check     — verify dnf deps"
+echo "  pwo <url>    — open browser (after: source ~/.zshrc)"
+echo "  pw-relink    — rebuild + relink after git pull"

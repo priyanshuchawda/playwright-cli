@@ -42,6 +42,20 @@ That script:
 
 If a merge conflicts, fix files (usually `nativeDeps.ts`, `hostPlatform.ts`, `dependencies.ts`, `registry/index.ts`), commit in `~/playwright`, then run `~/playwright-cli/scripts/setup-fedora.sh`.
 
+## zsh (this PC)
+
+`setup-fedora.sh` adds a block to `~/.zshrc` and loads `scripts/playwright-cli.zsh`:
+
+| Command | Action |
+|---------|--------|
+| `pw …` | Same as `playwright-cli …` |
+| `pw-check` | `install-browser chromium --with-deps --dry-run` |
+| `pw-relink` | Re-run `setup-fedora.sh` after pulls |
+| `pwo <url>` | Open session |
+| `pwc` / `pwl` | Close / list sessions |
+
+Reload: `source ~/.zshrc`
+
 ## Day-to-day commands
 
 ```bash
